@@ -2,63 +2,46 @@ import React, { useState } from "react";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { v4 as uuid } from "uuid";
 
-const apiData = {
-  [uuid()]: {
-    name: "Column 1",
-    items: [
-      { id: uuid(), content: "First Task" },
-      { id: uuid(), content: "Second Task" },
-    ],
-  },
-  [uuid()]: {
-    name: "Column 2",
-    items: [],
-  },
-};
+function App() {
+  const [cols, setCols] = useState({
+    [uuid()]: {
+      name: "Column 1",
+      items: [
+        { id: uuid(), content: "First Task" },
+        { id: uuid(), content: "Second Task" },
+      ],
+    },
+    [uuid()]: {
+      name: "Column 2",
+      items: [],
+    },
+  });
 
-const onDragEnd = (res, cols, setCols) => {
-  if (!res.destination) return;
-  const { source, destination } = res;
-
-  if (source.droppableId !== destination.droppableId) {
-    const sourceCol = cols[source.droppableId];
-    const destCol = cols[destination.droppableId];
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+    const sourceCol = cols[result.source.droppableId];
+    const destCol = cols[result.destination.droppableId];
     const sourceItems = [...sourceCol.items];
     const destItems = [...destCol.items];
-    const [removed] = sourceItems.splice(source.index, 1);
-    destItems.splice(destination.index, 0, removed);
+    const [removed] = sourceItems.splice(result.source.index, 1);
+    destItems.splice(result.destination.index, 0, removed);
+
     setCols({
       ...cols,
-      [source.droppableId]: {
+      [result.source.droppableId]: {
         ...sourceCol,
         items: sourceItems,
       },
-      [destination.droppableId]: {
+      [result.destination.droppableId]: {
         ...destCol,
         items: destItems,
       },
     });
-  } else {
-    const col = cols[source.droppableId];
-    const copiedItems = [...col.items];
-    const [removed] = copiedItems.splice(source.index, 1);
-    copiedItems.splice(destination.index, 0, removed);
-    setCols({
-      ...cols,
-      [source.droppableId]: {
-        ...col,
-        items: copiedItems
-      }
-    });
-  }
-};
-
-function App() {
-  const [cols, setCols] = useState(apiData);
+  };
 
   return (
     <div style={{ display: "flex", justifyContent: "center", height: "100%" }}>
-      <DragDropContext onDragEnd={res => onDragEnd(res, cols, setCols)}>
+      <DragDropContext onDragEnd={onDragEnd}>
         {Object.entries(cols).map(([id, col]) => {
           return (
             <div
